@@ -1,11 +1,11 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import AudioPlayer from "./components/AudioPlayer";
 
 function App() {
   return (
     <div className="App">
-      <h1>🎵 My Music Player 🎵</h1>
+      <h1>My Music Player</h1>
+      <AudioPlayer />
     </div>
   );
 }
