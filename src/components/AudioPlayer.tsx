@@ -1,12 +1,13 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 
 const AudioPlayer: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(100);
+  const [isLooping, setIsLooping] = useState(false); // リピート状態
 
-  // 再生・一時停止トグル
   const togglePlayback = () => {
     if (!audioRef.current) return;
 
@@ -19,14 +20,19 @@ const AudioPlayer: React.FC = () => {
     setIsPlaying(!isPlaying);
   };
 
-  // 再生位置の更新
+  const handleRestart = () => {
+    if (!audioRef.current) return;
+    audioRef.current.currentTime = 0;
+    audioRef.current.play();
+    setIsPlaying(true);
+  };
+
   const handleTimeUpdate = () => {
     if (audioRef.current) {
       setCurrentTime(audioRef.current.currentTime);
     }
   };
 
-  // シークバー変更時
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTime = Number(e.target.value);
     if (audioRef.current) {
@@ -35,16 +41,30 @@ const AudioPlayer: React.FC = () => {
     setCurrentTime(newTime);
   };
 
-  // 音源のメタデータが読み込まれたら duration をセット
   const handleLoadedMetadata = () => {
     if (audioRef.current?.duration) {
       setDuration(audioRef.current.duration);
     }
   };
 
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = Number(e.target.value);
+    setVolume(newVolume);
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume / 100;
+    }
+  };
+
+  const toggleLoop = () => {
+    if (!audioRef.current) return;
+    const newLoopState = !isLooping;
+    setIsLooping(newLoopState);
+    audioRef.current.loop = newLoopState;
+  };
+
   return (
     <div>
-      <h2>🎵 シークバー付きMP3プレイヤー</h2>
+      <h2>🎵 リピート機能付きプレイヤー</h2>
       <audio
         ref={audioRef}
         src="/野良猫は宇宙を目指した.mp3"
@@ -52,11 +72,18 @@ const AudioPlayer: React.FC = () => {
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
       />
-      <button onClick={togglePlayback}>
-        {isPlaying ? "⏸ 一時停止" : "▶️ 再生"}
-      </button>
+      <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+        <button onClick={togglePlayback}>
+          {isPlaying ? "⏸ 一時停止" : "▶️ 再生"}
+        </button>
+        <button onClick={handleRestart}>⏮ 最初から再生</button>
+        <button onClick={toggleLoop}>
+          🔁 リピート: {isLooping ? "ON" : "OFF"}
+        </button>
+      </div>
 
-      <div style={{ marginTop: "10px" }}>
+      {/* シークバー */}
+      <div>
         <input
           type="range"
           min="0"
@@ -70,11 +97,25 @@ const AudioPlayer: React.FC = () => {
           {formatTime(currentTime)} / {formatTime(duration)}
         </div>
       </div>
+
+      {/* 音量スライダー */}
+      <div style={{ marginTop: "10px" }}>
+        <label>
+          音量: {volume}%
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={volume}
+            onChange={handleVolumeChange}
+            style={{ width: "100%" }}
+          />
+        </label>
+      </div>
     </div>
   );
 };
 
-// 時間を mm:ss 表記に整形
 function formatTime(time: number): string {
   const minutes = Math.floor(time / 60);
   const seconds = Math.floor(time % 60)
