@@ -31,7 +31,7 @@ function App() {
           <h2>Spotify検索</h2>
           <p>Spotifyと連携するには、ログインが必要です。</p>
           <a
-            href="https://accounts.spotify.com/authorize?client_id=ee1a6c22d09b48e7b05bbd403391e751&response_type=token&redirect_uri=http://127.0.0.1:4000/callback&scope=user-read-private"
+            href="https://accounts.spotify.com/authorize?client_id=ee1a6c22d09b48e7b05bbd403391e751&response_type=token&redirect_uri=http://127.0.0.1:3000/callback&scope=user-read-private"
             style={{
               display: "inline-block",
               padding: "10px 20px",
