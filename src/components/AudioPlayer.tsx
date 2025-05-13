@@ -1,4 +1,6 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
+
+const API_BASE_URL = "http://localhost:4000";
 
 const AudioPlayer: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -6,25 +8,54 @@ const AudioPlayer: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(100);
-  const [isLooping, setIsLooping] = useState(false); // リピート状態
+  const [isLooping, setIsLooping] = useState(false);
+  const [songs, setSongs] = useState<string[]>([]);
+  const [currentSong, setCurrentSong] = useState<string | null>(null);
+
+  // 曲一覧を取得
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/songs`)
+      .then((res) => res.json())
+      .then((data) => setSongs(data))
+      .catch((err) => console.error("Failed to fetch songs:", err));
+  }, []);
+
+  // 曲変更時の処理
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !currentSong) return;
+
+    audio.src = `${API_BASE_URL}/songs/${currentSong}`;
+    audio.load();
+    audio.volume = volume / 100;
+    audio.loop = isLooping;
+
+    audio.play();
+    setIsPlaying(true);
+
+    const handleEnded = () => setIsPlaying(false);
+    audio.addEventListener("ended", handleEnded);
+    return () => audio.removeEventListener("ended", handleEnded);
+  }, [currentSong]);
 
   const togglePlayback = () => {
-    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    if (!audio) return;
 
     if (isPlaying) {
-      audioRef.current.pause();
+      audio.pause();
     } else {
-      audioRef.current.play();
+      audio.play();
     }
-
     setIsPlaying(!isPlaying);
   };
 
   const handleRestart = () => {
-    if (!audioRef.current) return;
-    audioRef.current.currentTime = 0;
-    audioRef.current.play();
-    setIsPlaying(true);
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+      setIsPlaying(true);
+    }
   };
 
   const handleTimeUpdate = () => {
@@ -62,16 +93,25 @@ const AudioPlayer: React.FC = () => {
     audioRef.current.loop = newLoopState;
   };
 
+  const handleSelectSong = (song: string) => {
+    setCurrentSong(song);
+    setCurrentTime(0);
+  };
+
   return (
     <div>
-      <h2>🎵 リピート機能付きプレイヤー</h2>
+      <h2>🎵 音楽プレイヤー</h2>
+
+      {/* 再生中の曲表示 */}
+      {currentSong && <p>再生中: {currentSong}</p>}
+
       <audio
         ref={audioRef}
-        src="/野良猫は宇宙を目指した.mp3"
         preload="metadata"
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
       />
+
       <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
         <button onClick={togglePlayback}>
           {isPlaying ? "⏸ 一時停止" : "▶️ 再生"}
@@ -111,6 +151,18 @@ const AudioPlayer: React.FC = () => {
             style={{ width: "100%" }}
           />
         </label>
+      </div>
+
+      {/* 曲一覧 */}
+      <div style={{ marginTop: "20px" }}>
+        <h3>🎼 曲一覧</h3>
+        <ul>
+          {songs.map((song) => (
+            <li key={song}>
+              <button onClick={() => handleSelectSong(song)}>{song}</button>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
