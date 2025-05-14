@@ -1,5 +1,3 @@
-// src/components/SpotifySearch.tsx
-
 import React, { useState } from "react";
 import axios from "axios";
 
@@ -20,7 +18,11 @@ type SpotifySearchResponse = {
   };
 };
 
-const SpotifySearch: React.FC<{ token: string }> = ({ token }) => {
+type Props = {
+  token: string;
+};
+
+const SpotifySearch: React.FC<Props> = ({ token }) => {
   const [query, setQuery] = useState("");
   const [tracks, setTracks] = useState<Track[]>([]);
   const [playingUrl, setPlayingUrl] = useState<string | null>(null);
@@ -28,16 +30,25 @@ const SpotifySearch: React.FC<{ token: string }> = ({ token }) => {
   const searchTracks = async () => {
     try {
       const res = await axios.get<SpotifySearchResponse>(
-        "http://localhost:4000/api/search",
+        "https://api.spotify.com/v1/search",
         {
-          params: { q: query },
-          headers: { Authorization: token },
+          params: {
+            q: query,
+            type: "track",
+            limit: 10,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
       setTracks(res.data.tracks.items);
-    } catch (error) {
-      console.error("検索エラー:", error);
+    } catch (error: any) {
+      console.error("検索エラー:", error.response?.data || error.message);
+      if (error.response?.status === 401) {
+        alert("トークンが無効です。再ログインしてください。");
+      }
     }
   };
 

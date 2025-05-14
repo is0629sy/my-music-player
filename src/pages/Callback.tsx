@@ -7,24 +7,20 @@ const Callback: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
+    const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
 
     if (code) {
-      // 認証コードを使ってアクセストークンを取得
-      axios.post<{ access_token: string; refresh_token: string }>("/api/auth/callback", { code })
-        .then(response => {
-          const { access_token } = response.data;
+      axios
+        .post("/api/auth/callback", { code })
+        .then((res) => {
+          const { access_token } = res.data as { access_token: string };
           localStorage.setItem("spotify_token", access_token);
-          navigate("/playback"); // 再生画面に遷移
+          navigate("/"); // ✅ トップページに戻る
         })
-        .catch(error => {
-          console.error("トークン取得に失敗しました:", error);
-          // エラーハンドリングを追加する場合はここに記述
-        });
+        .catch((err) => console.error("トークン取得エラー:", err));
     } else {
-      console.error("認証コードが取得できませんでした");
+      console.error("認証コードがありません");
     }
   }, [navigate]);
 
@@ -32,6 +28,3 @@ const Callback: React.FC = () => {
 };
 
 export default Callback;
-
-
-//ChatGptに聞きたい！！！！！！

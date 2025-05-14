@@ -155,7 +155,7 @@ const AudioPlayer: React.FC = () => {
 
       {/* 曲一覧 */}
       <div style={{ marginTop: "20px" }}>
-        <h3>🎼 曲一覧</h3>
+        <h3>🎼 曲一覧・ローカルファイル</h3>
         <ul>
           {songs.map((song) => (
             <li key={song}>

@@ -1,3 +1,4 @@
+// 完全版: server/index.ts
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -6,21 +7,19 @@ import fs from "fs";
 import path from "path";
 import cors from "cors";
 
-import authRoutes from "./auth"; // app定義後に使う
+import authRoutes from "./auth";
 
 const app = express();
 const PORT = 4000;
 
-// CORS を許可（React開発サーバーと通信するため）
 app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// 認証ルーティングを追加
 app.use("/", authRoutes);
 
-// songsディレクトリのパス
 const songsDir = path.join(__dirname, "../songs");
 
-// API: /api/songs → ファイル一覧を返す
 app.get("/api/songs", (req, res) => {
   fs.readdir(songsDir, (err, files) => {
     if (err) {
@@ -31,7 +30,6 @@ app.get("/api/songs", (req, res) => {
   });
 });
 
-// 静的ファイル配信: /songs/song1.mp3 のようにアクセス可能に
 app.use("/songs", express.static(songsDir));
 
 app.listen(PORT, () => {
